@@ -20,7 +20,7 @@ class UserFixtures extends Fixture
     {
         $faker = Factory::create();
 
-        // Création de l'utilisateur Classique
+        // Création de l'utilisateur classique
         $user = new User();
         $user
             ->setEmail('user@mail.com')
@@ -31,10 +31,11 @@ class UserFixtures extends Fixture
             ))
             ->setCreatedAt(new \DateTimeImmutable('2020-10-20'))
             ->setUpdateAt(new \DateTimeImmutable('2021-11-05'));
+        $this->addReference('user_0', $user); 
         $manager->persist($user);
 
-        // Création de 10 utilisateurs avec Faker
-        for ($i = 0; $i < 9; $i++) {
+        // Création de 9 utilisateurs avec Faker
+        for ($i = 1; $i < 10; $i++) {
             $additionalUser = new User();
             $additionalUser
                 ->setEmail($faker->email())
@@ -45,7 +46,7 @@ class UserFixtures extends Fixture
                 ))
                 ->setCreatedAt(new \DateTimeImmutable())
                 ->setUpdateAt(new \DateTimeImmutable());
-            $this->addReference('user_' . $i, $additionalUser);
+            $this->addReference('user_' . $i, $additionalUser); 
             $manager->persist($additionalUser);
         }
 

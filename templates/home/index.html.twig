@@ -8,6 +8,10 @@
 {% block body %}
 
 <h1>HOME</h1>
-
+<section class="">
+    {% for book in books %}
+        {% include'/_partials/_card.html.twig' %}
+    {% endfor %}
+</section>
 {% endblock %}
 
