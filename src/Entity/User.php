@@ -6,11 +6,13 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -42,13 +44,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Book>
      */
-    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'user')]
+    #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'user')]
     private Collection $books;
+
+    /**
+     * @var Collection<int, Author>
+     */
+    #[ORM\OneToMany(targetEntity: Author::class, mappedBy: 'user')]
+    private Collection $author;
 
     public function __construct()
     {
         $this->books = new ArrayCollection();
+        $this->author = new ArrayCollection();
     }
+
+   
 
     public function getId(): ?int
     {
@@ -161,7 +172,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->books->contains($book)) {
             $this->books->add($book);
-            $book->addUser($this);
+            $book->setUser($this);
         }
 
         return $this;
@@ -170,9 +181,44 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeBook(Book $book): static
     {
         if ($this->books->removeElement($book)) {
-            $book->removeUser($this);
+            // set the owning side to null (unless already changed)
+            if ($book->getUser() === $this) {
+                $book->setUser(null);
+            }
         }
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, Author>
+     */
+    public function getAuthor(): Collection
+    {
+        return $this->author;
+    }
+
+    public function addAuthor(Author $author): static
+    {
+        if (!$this->author->contains($author)) {
+            $this->author->add($author);
+            $author->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAuthor(Author $author): static
+    {
+        if ($this->author->removeElement($author)) {
+            // set the owning side to null (unless already changed)
+            if ($author->getUser() === $this) {
+                $author->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+
 }
